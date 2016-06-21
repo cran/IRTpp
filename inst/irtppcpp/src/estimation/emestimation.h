@@ -11,7 +11,6 @@
 #include <estimation/mstep.h>
 #include <type/ghquads.h>
 #include <utils/ramsay.h>
-#include <utils/Input.h>
 
 namespace irtpp
 {
@@ -32,10 +31,11 @@ namespace irtpp
         delete[] counter_temp;
       }
 
-      emestimation(model* m, dataset* d)
+      emestimation(model* m, dataset* d,double convergence)
       {
+		sigmaConv = convergence;
         iterations   = 0;
-        m->qnodes       = 40;
+        m->qnodes    = 40;
         //Matrix<double> cuad(qnodes, 2);
 
         this->d      = d;
@@ -166,7 +166,7 @@ namespace irtpp
 
           /**/
           m->calculateError(max_diff, z, z_temp, d->size);
-          convergenceSignal = max_diff <=  0.0001 ? true : false;
+          convergenceSignal = max_diff <=  sigmaConv ? true : false;
         }
 
         m->untransform(z);
@@ -188,7 +188,7 @@ namespace irtpp
 private:
       int iterations;
       double LL;
-      Input input;
+	  double sigmaConv;
       Matrix<double>* f;
       Matrix<double>* r;
       Matrix<double>* z;

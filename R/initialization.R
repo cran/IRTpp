@@ -1,19 +1,23 @@
+#######################################################################
 ## Function for initial parameterization :
 #V* Input Dataset
 #v* Output Some sort of cluster or items for each dimension and num dimensions.
 # Find out the clusters of items for the proyection of dem all
 # To each cluster assign the principal vector of the transformm yea!
 
+#######################################################################
 #' @name parameters.initialize
 #' @title parameters.initialize
-#' @author SICS Research Group
+#' @description Function to initialize model parameters
 #' @param dataset The dataset to calculate the initial parameters. A matrix of 0's  and 1's
 #' @param dims To set the dimensions of use in the test.
 #' @param model The model with dimensions.
-#' @param method Optional, "PCA" for multidimensional and "ANDRADE" for unidimensional are teh current implementations
+#' @param method Optional, "PCA" for multidimensional and "ANDRADE" for unidimensional are the current implementations.
 #' @param red.items Optional, default true. Reduces the dataset to the dataset without trash items.s
 #' @return Initial values for a estimation on the dataset and the model.
-#' @export
+#' @references Andrade, D. F. , Tavares, H. R. y Valle, R. C. (2000). 
+#' Teoria da resposta ao Item : Conceitos e Aplicacoes. SINAPE : Caxambu, MG
+#' @keywords internal
 parameters.initialize<-function(dataset, model , dims , method = "DEFAULT" , red.items=T){
   check.model(model)
   if(model == "3PL"){

@@ -1,6 +1,6 @@
 ---
 title: "Goodness of Fit-Dichotomous One Dimensional Model"
-author: "Juan David Cortés"
+author: "SICS Research Group"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >

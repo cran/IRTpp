@@ -1,23 +1,30 @@
+#######################################################################
 #' @name simulateTest
-#' @title simulateTest
-#' @description Simulates a test according to a IRT Model
-#' returns :
-#' List with model, seed  , itempars, and the test simulated.
-#' check the documentation of \code{\link{simulateTestMD}} for information
+#' @title Simulates a test
+#' @description Simulates a test according to a IRT Model.
+#' @details Check the documentation of \code{\link{simulateTestMD}} for information
 #' on the return in the Multidimensional case.
-#' @param model The IRT model. in Multidimensional is 3PL.
+#' @param model The IRT model. "1PL","2PL" or "3PL". In Multidimensional is "3PL".
 #' @param items The items to simulate in the test.
 #' @param latentTraits The latentTraits in the UIRT case.
 #' @param individuals The individuals to simulate in the test.
-#' @param boundaries The boundaries for parameter generation. See the \code{\link{simulateItemParameters}} documentation for help
+#' @param boundaries The boundaries for parameter generation. See the \code{\link{simulateItemParameters}} documentation for help.
 #' @param dims The dimensionality of the test.
 #' @param itempars A list with teh parameters of the items if provided.
 #' @param verbose Verbosibity for more information about the process, use when simulating long tests.
-#' @param threshold A boundary for the percent of answered questions to a test. i.e. 0.05 indicates the individuals will answer maximum the 95% of the questions and minimum the 5% of the questions. UIRT only.
+#' @param seed Desired seed to use in test generation. If null, a seed based on the current time will be used.
+#' @param clusters Used for MD test generation.
+#' @param repetition Used for MD test generation.
+#' @param threshold A boundary for the percent of answered questions to a test. i.e. 0.05 indicates the individuals will answer maximum the 95\% of the questions and minimum the 5\% of the questions. UIRT only.
+#' @return List with model, seed, itempars, and the simulated test.
+#' @seealso
+#' \code{\link{simulateTest.file}}, \code{\link{simulateTestMD}}
+#' @examples 
+#' # simulateTest("2PL", items = 30, individuals = 500)
 #' @export
-simulateTest = function(model = "3PL" , items = 10 , latentTraits=NULL ,individuals = 1000
+simulateTest <- function(model = "3PL" , items = 10 , latentTraits=NULL ,individuals = 1000
                         , boundaries = NULL, dims = 1 , itempars = NULL , verbose = F ,
-                        threshold = 0, seed = 1 , clusters = NULL, repetition = 1){
+                        threshold = 0, seed = 500L , clusters = NULL, repetition = 1){
   ret = NULL;
 
   if(dims > 1){
@@ -28,25 +35,29 @@ simulateTest = function(model = "3PL" , items = 10 , latentTraits=NULL ,individu
   }else{
 
   ret$model = model;
-  seed = ua(seed,floor(runif(1)*10000000))
+  seed = ua(seed,Sys.time())
   set.seed(seed);
   ret$seed = seed;
   check.model(model);
   z = ua(itempars,simulateItemParameters(items,model,dims,boundaries));
   ret$itempars = z;
   #Generate the individual parameters (assume normal for now, change later)
-  th=rnorm(individuals*dims,0,1)
+  th=rnorm(individuals,0,1)
   th=(th-mean(th))/sd(th)
-  th = matrix(th,ncol=dims);
   ret$latentTraits = ua(latentTraits,th)
-  th=ret$latentTraits;
   gc()
   ##Here th must be exactly the latent traits of these individuals in this test.
-  ret$prob=do.call(rbind,lapply(th,function(x,z) probability.3pl(theta=x,z=z),z=z))
+  P = matrix(0, individuals, items);
+  for(i in 1:items){
+	P[,i] = z$c[i]+((1-z$c[i])*plogis(ret$latentTraits,location = z$b[i],scale = 1/z$a[i],TRUE))
+  }
+  
   gc()
-  coins=matrix(runif(items*individuals),ncol=items);
-  gc()
-  ret$test = ifelse(ret$prob>coins,1,0)
+  U <- matrix(runif(individuals*items),individuals,items)
+  Y <- ifelse(P>U,1,0)
+  ret$prob=P
+  coins=matrix(U,ncol=items);
+  ret$test = Y;
   coins=NULL
   gc()
   if(verbose){print("Simulation finished ... ")}
@@ -54,16 +65,10 @@ simulateTest = function(model = "3PL" , items = 10 , latentTraits=NULL ,individu
   ret
 }
 
-#cor(rowSums(ret$prob),rowSums(ret$test))
-
-#' SimulateTest.file
-#' Simulates a test according to a model and saves it to files, can be slow due to disk usage.
-#'
-#'
-#' @export
-#' @description This function simulates tests according to a IRT model.
-#' @author Juan Liberato
-#' @return A List with the model, the seed , itempars the item parameters
+#######################################################################
+#' @name simulateTest.file
+#' @title This function simulates tests according to a IRT model.
+#' @description Simulates a test according to a model and saves it to files, can be slow due to disk usage.
 #' @param model A string with the model to simulate, please refer to the model documentation in irtpp documentation.
 #' @param items the number of items to simulate
 #' @param individuals the number of individuals to simulate
@@ -77,6 +82,12 @@ simulateTest = function(model = "3PL" , items = 10 , latentTraits=NULL ,individu
 #' @param itempars Optional. Item parameters to be used in the simulation. When the parameters are not generated, the item parameters must be specified.
 #' @param seed Optional. Seed to use to generate all the data
 #' @param verbose Optional. If true, output is made to know the status of the algorithm
+#' @return A List with the model, the seed, the item parameters and the test.
+#' @seealso
+#' \code{\link{simulateTest}}
+#' @examples 
+#' # simulateTest.file("3PL", 20, 300)
+#' @export
 simulateTest.file<-function(model="2PL",items=10,individuals=1000,reps=1,dims=1,filename="test",directory=NULL,boundaries=NULL,itempars=NULL,latentTraits=NULL,seed=NULL,verbose=F,threshold=0)
 {
   dirflag=F;
@@ -96,19 +107,19 @@ simulateTest.file<-function(model="2PL",items=10,individuals=1000,reps=1,dims=1,
   print.sentence("Groups in simulation : ",groups, "size : ", gsize, verbose=verbose , " last group size : ", lsize)
 
   model=irtpp.model(model)
-  #TODO Implement multidimensional test simulation
+  
   dims=1
   ret = NULL;
   ret$model = model;
-  #set the seed if not set
+  
   seed = ua(seed,floor(runif(1)*10000000))
   set.seed(seed);
   ret$seed = seed;
   check.model(model);
-  #Generate the item parameters (or read)
+  
   z = ua(itempars,simulateItemParameters(items,model,dims,boundaries));
   ret$itempars = z;
-  #Generate the individual parameters (assume normal for now, change later)
+  
   th=rnorm(individuals*dims,0,1)
   th=(th-mean(th))/sd(th)
   th = matrix(th,ncol=dims);
@@ -116,7 +127,7 @@ simulateTest.file<-function(model="2PL",items=10,individuals=1000,reps=1,dims=1,
   th=NULL;
   gc()
   individuals = gsize;
-  ##Break the simulation here in files.
+  
   if(dirflag){setwd(dir=directory)}
   for (j in 1:reps){
   fname = paste0(filename,j,".csv");
@@ -131,17 +142,15 @@ simulateTest.file<-function(model="2PL",items=10,individuals=1000,reps=1,dims=1,
     if(i == groups){
       individuals = lsize
     }
-    ##Select only the thetas in this file reduction.
-    #print.sentence("Length of traits",length(ret$latentTraits))
     b1 = ((i-1)*gsize)+1
     b2 = (((i-1)*gsize))+individuals
     if(i == groups) b2 = oind;
     th = ret$latentTraits[b1:b2];
-    #print.sentence(b1," : ",b2)
+    
 
 
     if(verbose){print("Starting simulation")}
-    ##Here th must be exactly the latent traits of these individuals in this test.
+    
     ret$prob=replicate(reps,do.call(rbind,lapply(th,function(x,z) probability.3pl(theta=x,z=z),z=z)),simplify=F)
     gc()
     coins=replicate(reps,matrix(runif(items*individuals),ncol=items),simplify=F);
@@ -150,14 +159,14 @@ simulateTest.file<-function(model="2PL",items=10,individuals=1000,reps=1,dims=1,
     coins=NULL
     gc()
     if(verbose){print("Simulation finished ... ")}
-    #Impute the test to exclude individuals in the threshold
+  
 
     repeat{
-      #scores of individuals and items
+     
       if(verbose){print("")}
       individual.scores = lapply(ret$test,function(x) {
         rowSums(x)/items});
-      #outlier scores
+     
       outliers.flags = lapply(individual.scores,function(x) ifelse(x<threshold | x>(1-threshold),T,F))
       outliers.indices = lapply(outliers.flags,function(x) as.list(which(x)))
       outliers.missing = lapply(outliers.indices,length)
@@ -171,13 +180,13 @@ simulateTest.file<-function(model="2PL",items=10,individuals=1000,reps=1,dims=1,
         gc()
         print.sentence("Outliers left",outliers.total,verbose=verbose)
       }
-      #resimulate the coins
+     
       if(verbose){print("Resimulating coins ...")}
       newcoins = sapply(outliers.missing,function(x){matrix(runif(x*items),ncol=items)},simplify=F)
       probs = mapply(function(x,y){x[as.numeric(y),]},ret$prob,outliers.indices,SIMPLIFY=F)
       if(verbose){print("Calculating new scores ...")}
       newscores=mapply(function(x,y){ifelse(x>y,1,0)},probs,newcoins,SIMPLIFY=F);
-      #assign the new scores in the the old test
+      
       if(verbose){print("Re-assigning new scores ...")}
       mapply(function(x,y,z){
         if(outliers.missing[[z]]>0){
@@ -188,8 +197,7 @@ simulateTest.file<-function(model="2PL",items=10,individuals=1000,reps=1,dims=1,
       },outliers.indices,newscores,seq(length(outliers.indices)),SIMPLIFY=F);
     }
     gc()
-    ##Handle the return
-    ##Output to the file.
+ 
     print.sentence("Outputting to files ",verbose=verbose)
     for (j in 1:reps){
       fname = paste0(filename,j,".csv");
@@ -198,8 +206,6 @@ simulateTest.file<-function(model="2PL",items=10,individuals=1000,reps=1,dims=1,
     print.sentence("... ",verbose=verbose)
 
   }
-  ##Delete the files if option is not enabled.
-  ##top("hammertime")
   if(dirflag){
     ret$test=directory;
   }
@@ -215,39 +221,48 @@ simulateTest.file<-function(model="2PL",items=10,individuals=1000,reps=1,dims=1,
         file.remove(fname);
     }
   }
-  #Generate the tests
+  
   ret$prob = NULL;
   gc();
   ret
 }
 
-
-#' Simulates item parameters depending on a model
+#######################################################################
 #' @name SimulateItemParameters
-#' @description Simulates item parameters for UIRT models.
-#' @export
-#' @param items , Number of items to generate
+#' @title Simulates item parameters for UIRT models.
+#' @description Simulates item parameters depending on a model
+#' @param items Number of items to generate
 #' @param model A string with the model to simulate, please refer to the model documentation in irtpp documentation.
 #' @param dims Optional. The number of dimensions to simulate in the test if the model is multidimensional
 #' @param boundaries Optional. The kind of boundaries that are specified for the parameters.
-simulateItemParameters<- function(items, model, dims=1, boundaries=NULL){
+#' @return A list containing the values of the parameters simulated according to the chosen model.
+#' @seealso
+#' \code{\link{simulateTest}}, \code{\link{simulateTest.file}}
+#' @examples 
+#' ## Simulation for a dimension
+#' # simulateItemParameters(10, "2Pl")
+#' ## For three-dimensional simulation
+#' # simulateItemParameters(10, "2Pl", dims = 3)
+#' @export
+
+simulateItemParameters <- function(items, model, dims=1, boundaries=NULL){
   model = irtpp.model(model);
   bd = boundaries;
-  bd$b_lower = ua(bd$b_lower,-4);
-  bd$b_upper = ua(bd$b_upper,4);
-  bd$a_upper = ua(bd$a_upper,5);
-  bd$a_lower = ua(bd$a_lower,0.0001);
-  bd$c_upper = ua(bd$c_upper,0.35);
+  bd$b_lower = ua(bd$b_lower,-3);
+  bd$b_upper = ua(bd$b_upper,3);
+  bd$a_upper = ua(bd$a_upper,4);
+  bd$a_lower = ua(bd$a_lower,0.2);
+  bd$c_upper = ua(bd$c_upper,0.25);
   bd$c_lower = ua(bd$c_lower,0);
   if(dims == 1){
 
-  b = rnorm(items);
+  b = rnorm(items,0,1);
   if(model == "3PL"){
-    a = rlnorm(items,meanlog=0,sdlog=1/4)
+    a = runif(items,min=bd$a_lower,max=bd$a_upper)
     c = runif(items,min=bd$c_lower,max=bd$c_upper)
   }
   if(model == "2PL"){
-    a = rlnorm(items,meanlog=0,sdlog=1/4)
+    a = runif(items,bd$a_lower,bd$a_upper)
     c = rep(0,items)
   }
   if(model == "Rasch"){
@@ -262,7 +277,7 @@ simulateItemParameters<- function(items, model, dims=1, boundaries=NULL){
   ret = list(a=a,b=b,c=c);
   }
   if(dims > 1){
-    ##Multidimensional
+    
     a=matrix(runif(dims * items, min = 0, max = 7), nrow = items) #a_j
     b=rnorm(items, mean = 0, sd = 0.7)#b
     d=rep(NA, items)
@@ -280,17 +295,17 @@ simulateItemParameters<- function(items, model, dims=1, boundaries=NULL){
   ret
 }
 
-#FUNCION PARA CALCULAR LA PRBABILIDAD EN EL CASO MULTIDIMENSIONAL
 
+#######################################################################
 #' @name prob
-#' @title prob
-#' @description calcula la probabilidad en el caso multidimensional
-#' @author Juan David Cortes
-#' @return la probabilidad
-#' @param theta eltrazo latente multidimensional
-#' @param a parametro de discrimnacion en el caso multidimensional
-#' @param d parametro d en el caso multidimensional
-#' @param c parametro de azar en el caso multidimensional
+#' @title Probability multidimensional case
+#' @description Calculates the probability in the multidimensional case.
+#' @param theta the latent trait multidimensional.
+#' @param a Discrimination parameter in the multidimensional case.
+#' @param d Difficulty transformed parameter d in the multidimensional case.
+#' @param c Guessing parameter in the multidimensional case.
+#' @return The probability value.
+#' @keywords internal
 
 prob <- function(theta,a,d,c)
 {
@@ -298,41 +313,39 @@ prob <- function(theta,a,d,c)
   return(prob)
 }
 
-#FUNCION PARA SIMULAR EL TEST
+#######################################################################
+#' @name testmulti
+#' @title Multidimensional test
+#' @description Simulates a multidimensional test.
+#' @param nitems number of items.
+#' @param ninds number of individuals.
+#' @param dim latent trait dimension.
+#' @param model "1PL", "2PL" or "3PL".
+#' @seealso 
+#' \code{\link{simulateTest}}, \code{\link{simulateTest.file}}
+#' \code{\link{simulateTestMD}}  
+#' @return the test and population parameters used in the simulation.
+#' @keywords internal
 
-#' testmulti
-#' @description simula un test multidimensional
-#' @author Juan David Cortes
-#' @return el test y los parameros poblacionales con los que se simulo
-#' @param nitems numero de items
-#' @param ninds numero de individuos
-#' @param dim dimension del trazo
-#' @param model 1pl, 2pl o 3pl
+testmulti <- function(nitems,ninds,dim,model){
 
-testmulti=function(nitems,ninds,dim,model){
-
-  #GENERACIoN DE PARaMETROS
-  ret = NULL;
-  a=matrix(runif(dim * nitems, min = 0, max = 7), nrow = nitems) #a_j
-  b=rnorm(nitems, mean = 0, sd = 0.7)#b
-  d=rep(NA, nitems)
+  ret <- NULL;
+  a <- matrix(runif(dim * nitems, min = 0, max = 7), nrow = nitems) 
+  b <- rnorm(nitems, mean = 0, sd = 0.7)
+  d <- rep(NA, nitems)
   for (i in 1:nitems){
-    d[i]=-b[i]*sqrt(sum(a[i, ]^2))#d
+    d[i] <- -b[i]*sqrt(sum(a[i, ]^2))
   }
-  c <- runif(nitems, min = 0, max = 0.25)#c
+  c <- runif(nitems, min = 0, max = 0.25)
 
-
-  mu=rep(0,dim)
-  sigma=matrix(0,dim,dim)
-  corr=runif(((dim^2-dim)/2),min = 0,max = .6)
-  sigma[lower.tri(sigma)]=corr
-  sigma=t(sigma)+sigma
-  diag(sigma)=1
-
+  mu <- rep(0,dim)
+  sigma <- matrix(0,dim,dim)
+  corr <- runif(((dim^2-dim)/2),min = 0,max = .6)
+  sigma[lower.tri(sigma)] <- corr
+  sigma <- t(sigma) + sigma
+  diag(sigma) <- 1
 
   theta <- mvrnorm(n = ninds, mu = mu, Sigma = sigma)
-
-  #PROBABILIDAD
 
   if(model=="2PL"){c=rep(0,nitems)}
   if(model=="1PL"){c=rep(0,nitems);a=matrix(1,ncol = dim,nrow = nitems)}
@@ -345,25 +358,22 @@ testmulti=function(nitems,ninds,dim,model){
     }
   }
 
-  #TEST
-
-  test=matrix(NA, nrow = ninds, ncol = nitems)
+  test <- matrix(NA, nrow = ninds, ncol = nitems)
   for (j in 1:ninds){
     for (i in 1:nitems){
       test[j, i] <- ifelse(runif(1)<psics[j,i],1,0)
     }
   }
 
-
-  param=list("a"=a,"b"=b,"c"=c,"d"=d)
-  lista=list("test"=test,"param"=param)
+  param <- list("a"=a,"b"=b,"c"=c,"d"=d)
+  lista <- list("test"=test, "param"=param)
   return(lista)
 }
 
-
-#' @name Simulate test Multidimensional
-#' @author SICS Research team
+#######################################################################
+#' @name simulateTestMD
 #' @title Simulate test Multidimensional
+#' @description Simlates a multidimensional test
 #' @param items The items to simulate
 #' @param individuals The individuals that answer the test.
 #' @param dims The dimensions of the test.
@@ -381,20 +391,18 @@ testmulti=function(nitems,ninds,dim,model){
 #'   \item clustinit : The principal item of each cluster
 #'   \item clusterlist : The range list of the clusters.
 #' }
+#' @examples 
+#' # simulateTestMD(items = 10, individuals = 1000, dims = 3, clusters = 4,
+#' # seed = 10, z = NULL, repetition = 1)
 #' @export
 simulateTestMD <- function(items = 10, individuals = 1000, dims = 3, clusters = 4 , seed = 10, z = NULL , repetition=1)
 {
-  ####Start here
-  ### Decide number of items per cluster.
   set.seed(seed)
   rem = items%%clusters
   nitems = items - rem
   itemlist = rep(nitems/clusters,clusters)
   itemlist[[clusters]] = itemlist[[clusters]] + rem
-  ##split
-  #print(itemlist)
-
-  ##determinar direcciones principales
+ 
   idnoisy = diag(dims)+matrix(rnorm(dims*dims,0.15,0.05),nrow=dims,ncol=dims);
   idnoisy = idnoisy * ifelse(idnoisy < 1 , 1, 0) + diag(dims)
   idnoisy = normalize(idnoisy)
@@ -403,15 +411,10 @@ simulateTestMD <- function(items = 10, individuals = 1000, dims = 3, clusters = 
 
   noise <- seq(0.1,by=.25 / clusters, length.out=clusters)
 
-
-  # Matrix of the beta directions
   dir_beta = matrix(NA,sum(itemlist),dims)
 
-  # seed for reproducible experiments
   set.seed(seed)
 
-  #Perturb the dims
-  ##List item limits
   ends = cumsum(itemlist)
   inits = (c(0,cumsum(itemlist))+1)[1:length(itemlist)]
   dir_beta[items,]
@@ -423,21 +426,16 @@ simulateTestMD <- function(items = 10, individuals = 1000, dims = 3, clusters = 
 
   dir_beta = normalize(dir_beta)
 
-  ## Quitar negativos
   dir_beta = ifelse(dir_beta<0,0,dir_beta)
 
-  ## Definir vectores de identificacion.
   dir_beta[inits[1:dims],] = diag(dims)
 
-
-  ##True reference directions
   true_w = matrix(NA,clusters,dims)
   for (i in 1:clusters) {
     true_w[i,] <- abs(eigen(t(dir_beta[inits[i]:ends[i],])%*%dir_beta[inits[i]:ends[i],])$vectors)[,1]
   }
 
-  ### Now simulate itempars
-  if(is.null(z)){
+   if(is.null(z)){
     l_a=0.25
 
     u_a = Inf
@@ -446,15 +444,13 @@ simulateTestMD <- function(items = 10, individuals = 1000, dims = 3, clusters = 
     length(Alpha)
     a = dir_beta * matrix(Alpha, items,dims, byrow=FALSE)
 
-    #sqrt(t(dir_beta[2,])%*%(dir_beta[2,]))
 
-    # B parametters
     sd.gamma <-1
     Gamma <- rnorm(items,0,sd.gamma)
     Gamma <- Gamma*Alpha
     Gamma[inits[1:dims]] = 0;
-    ## C parameters
-    guessing=runif(items,0,0.25)
+
+    guessing <- runif(items,0,0.25)
   }
   else {
     a = z$a;
@@ -463,15 +459,15 @@ simulateTestMD <- function(items = 10, individuals = 1000, dims = 3, clusters = 
   }
 
   theta <- matrix(rnorm(individuals*dims,0,1),individuals,dims)
-  # this line is to garantee the the covariance matrix is the identity
+  
   theta <- theta %*% solve((chol(cov(theta))))
   cov(theta)
   theta.true <- theta
 
-  ## Setting prob matrix
+  
   eta  <- theta %*% t(a) -  matrix(Gamma,individuals,items,byrow=TRUE)
   P = guessing + (1-guessing)/(1+exp(-eta))
-  ## Coins
+  
   coinseed = seed;
   if(!is.null(repetition)){
     coinseed = repetition*3 + seed;
@@ -489,7 +485,7 @@ simulateTestMD <- function(items = 10, individuals = 1000, dims = 3, clusters = 
   cor(t.score,c.score)
 
   restrict = matrix(0,items,dims+2)
-  ###restrict a's of the first dims. and the b's
+  
   for (i in 1:ncol(restrict)) {
     for (j in 1:nrow(restrict)) {
       if(i <= dims && j <= dims + 1){
@@ -497,12 +493,9 @@ simulateTestMD <- function(items = 10, individuals = 1000, dims = 3, clusters = 
       }
     }
   }
-  ##Return everything
-
+  
   upper = inits;
   lower = inits + itemlist -1;
-
-  ##Estos son los clusters para fix.items
 
   fixedclusts  = c(t(matrix(c(upper,lower),nrow = length(itemlist))))
 

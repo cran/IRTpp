@@ -1,6 +1,6 @@
 ---
 title: "Models and Parameters"
-author: "Juan Liberato"
+author: "SICS Research Group"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >

@@ -1,11 +1,11 @@
 ---
 title: "Estimating Parameters with IRTpp"
-author: "Juan Liberato"
+author: "SICS Research Group"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Estimating Parameters with IRTpp}
-  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEngine{rmarkdown::render()}
   %\VignetteEncoding{UTF-8}
 ---
 

@@ -1,13 +1,34 @@
-#' Estimate a test item parameters according to Item Response Theory.
-#' @param dataset The matrix with the responses from the individuals
-#' @param model The model used to calibrate the parameters
-#' @param dims The dimensions to use on the estimation, remember to use the initial parameters if you want highquality estimation
-#' @param initialvalues The matrix with the initial values for the optimization process
-#' @param filename Optional argument specifying a CSV file to read instead of a dataset in memory
-#' @param output Optional. Additonal arguments that need to be documented by cristian
-#' @param loglikflag Optional. Show the loglikelihood at the end of estimation procedure. Also shows AIC and BIC statistic
-#' @return The item parameters in a matrix.
-#' @export
+#######################################################################
+#' @name irtpp
+#' @title Estimate a test item parameters.
+#' @description Estimate a test item parameters according to Item Response Theory.
+#' @param dataset The matrix with the responses from the individuals.
+#' @param model The model used to calibrate the parameters.
+#' @param dims The dimensions to use on the estimation, remember to use the initial parameters if you want highquality estimation.
+#' @param initialvalues The matrix with the initial values for the optimization process.
+#' @param filename Optional argument specifying a CSV file to read instead of a dataset in memory.
+#' @param output Optional.  Additonal arguments that need. 
+#' @param loglikflag Optional. Show the loglikelihood at the end of estimation procedure. Also shows AIC and BIC statistic.
+#' @param convergenceEpsilon Optional. Convergence value, default value of 1E-4
+#' @return A list containing the estimates of the model parameters, 
+#' the number of iterations, the loglikelihood final, the final values
+#' of the estimation procedure EM.
+#' @examples 
+#' ## Simulation data for the model "1pl"
+#' # data <- simulateTest(model = "1PL", items = 10, individuals = 500)
+#' ## Estimation of the parameters
+#' # irtpp(dataset = data$test, model = "1PL")
+#'
+#'## Simulation data for the model "2pl"
+#'# data <- simulateTest(model = "2PL", items = 20, individuals = 800)
+#'## Estimation of the parameters
+#'# irtpp(dataset = data$test, model = "2PL")
+#'
+#'## Simulation data for the model "3pl"
+#'# data <- simulateTest(model = "3PL", items = 100, individuals = 1000)
+#'## Estimation of the parameters
+#'# irtpp(dataset = data$test, model = "3PL") 
+#'@export
 
 irtpp <- function(dataset          = NULL,
                   model,
@@ -15,18 +36,22 @@ irtpp <- function(dataset          = NULL,
                   initialvalues    = NULL,
                   filename         = NULL,
                   output           = NULL,
-                  loglikflag       = F)
+                  loglikflag       = F,
+				  convergenceEpsilon = 0.0001)
 {
-  if(dims > 1) {}
+  if(dims > 1) {
+	writeLines("Multidimensional analysis not yet implemented.\nPlease wait for the next release of the IRTpp package")
+  }
   else
   {
+	dataset = data.matrix(dataset);
     mod = irtpp.model(model,asnumber=T);
-    ret = uirtestimate(dataset,mod)
+    ret = uirtestimate(dataset,mod,convergenceEpsilon)
 
     ret$z = ret$z[1:(mod*ncol(dataset))]
-    ##print(ret$z)
+    
     ret$z = matrix(ret$z,ncol=mod,byrow=T)
-    ##print("mt")
+    
     if(mod == 2)
     {
       ret$z = cbind(ret$z,rep(0,ncol(dataset)))
@@ -36,18 +61,14 @@ irtpp <- function(dataset          = NULL,
       ret$z = cbind(rep(1,ncol(dataset)),ret$z,rep(0,ncol(dataset)))
     }
 
-    ##print(ret$z)
-    ##ret$z = parameter.matrix(ret$z, byrow=T)
     ret$z = parameter.list(ret$z)
 
-    ### now do the loglik.
     if(loglikflag)
     {
       z       = ret$z
       theta   = ret$theta
       weights = ret$weights
 
-      ##first calculate prob matrix
       thsum = NULL
       idx   = 1;
       for (th in theta)
@@ -77,13 +98,25 @@ irtpp <- function(dataset          = NULL,
   ret
 }
 
-#' Estimate the latent traits of the individuals in a test with some given item parameters
-#' @param model The model used to calibrate the parameters
-#' @param itempars The item parameters for the model.
-#' @param method The method to estimate traits
-#' @param dataset The matrix with the responses from the individuals
-#' @param probability_matrix The probability matrix in case it does not need to be recalculated
-#' @return A list with the patterns and the estimated latent traits
+#######################################################################
+#' @name individual.traits
+#' @title Estimate the latent traits. 
+#' @description Estimate the latent traits of the individuals in a test with some given item parameters.
+#' @param model The model used to calibrate the parameters.
+#' @param itempars The item parameters for the model in matrix form.
+#' @param method The method for estimating the traits, may be "EAP" or "MAP".
+#' @param dataset The matrix with the responses from the individuals.
+#' @param probability_matrix The probability matrix in case it does not need to be recalculated.
+#' @return A list with the patterns and the estimated latent traits.
+#' @examples 
+#' ## Simulation data for the model "3pl"
+#' # data <- simulateTest(model = "3PL", items = 100, individuals = 1000)
+#' ## Estimation of the parameters
+#' # est <- irtpp(data$test, model = "3PL")
+#' ## Parameter Matrix 
+#' # z <- parameter.matrix(est$z)
+#' #trait <- individual.traits(model = "3PL", itempars = z, dataset = data$test,
+#' #                  method = "EAP", probability_matrix = est$prob_mat)
 #' @export
 individual.traits<-function(model,
                             itempars,

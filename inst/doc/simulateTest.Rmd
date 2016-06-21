@@ -1,6 +1,6 @@
 ---
 title: "Simulating Tests with IRTpp"
-author: "Juan Liberato"
+author: "SICS Research Group"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >

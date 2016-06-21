@@ -31,38 +31,6 @@ items.reclassify<-function(n, tmpd , axis){
 }
 
 
-
-## Make clusters of items.
-## Iterative PCA.
-
-### y.datF1 is the data 0's and 1's
-#library(FactoMineR)
-#library(optimx)
-#library(numDeriv)
-
-#library(IRTpp)
-#t = simulateTestMD(items = 20,individuals = 1000,dims = 3,clusters = 4)
-#test = t$test
-
-
-#acp = ACPI(test,0.8,0.9,6,15)
-#y.datF1 = read.table("/home/liberato/Downloads/Aplicacion_UN/respon.original.txt", header=T) 
-
-#names(acp)
-#acp[[1]]
-#acp[[2]]
-#dim(acp[[3]]) ##Latent traits
-#dim(y.datF1)
-#acp[[4]] ## Items per each dimension
-#length(acp[[5]])
-#acp[[5]] ## Submatrices for the test.
-#lapply(acp[[5]][[2]],dim)
-#typeof(acp[[5]][[2]])
-#lapply(acp)
-#do.call(cbind,acp[[5]])
-
-##Fuse submatrices
-
 ACPI<-function(y.datF1,h7=0.8,h2=0.9,hn=6,angu=15){
   y.datF1<-y.datF1
   originalF1<- y.datF1
