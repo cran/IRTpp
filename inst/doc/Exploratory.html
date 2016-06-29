@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<meta name="author" content="SICS Research Group" />
+
+<meta name="date" content="2016-06-28" />
+
+<title>Exploratory statistics with IRTpp</title>
+
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+</style>
+
+
+
+<link href="data:text/css;charset=utf-8,body%20%7B%0Abackground%2Dcolor%3A%20%23fff%3B%0Amargin%3A%201em%20auto%3B%0Amax%2Dwidth%3A%20700px%3B%0Aoverflow%3A%20visible%3B%0Apadding%2Dleft%3A%202em%3B%0Apadding%2Dright%3A%202em%3B%0Afont%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0Afont%2Dsize%3A%2014px%3B%0Aline%2Dheight%3A%201%2E35%3B%0A%7D%0A%23header%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0A%23TOC%20%7B%0Aclear%3A%20both%3B%0Amargin%3A%200%200%2010px%2010px%3B%0Apadding%3A%204px%3B%0Awidth%3A%20400px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Aborder%2Dradius%3A%205px%3B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Afont%2Dsize%3A%2013px%3B%0Aline%2Dheight%3A%201%2E3%3B%0A%7D%0A%23TOC%20%2Etoctitle%20%7B%0Afont%2Dweight%3A%20bold%3B%0Afont%2Dsize%3A%2015px%3B%0Amargin%2Dleft%3A%205px%3B%0A%7D%0A%23TOC%20ul%20%7B%0Apadding%2Dleft%3A%2040px%3B%0Amargin%2Dleft%3A%20%2D1%2E5em%3B%0Amargin%2Dtop%3A%205px%3B%0Amargin%2Dbottom%3A%205px%3B%0A%7D%0A%23TOC%20ul%20ul%20%7B%0Amargin%2Dleft%3A%20%2D2em%3B%0A%7D%0A%23TOC%20li%20%7B%0Aline%2Dheight%3A%2016px%3B%0A%7D%0Atable%20%7B%0Amargin%3A%201em%20auto%3B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dcolor%3A%20%23DDDDDD%3B%0Aborder%2Dstyle%3A%20outset%3B%0Aborder%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0Aborder%2Dwidth%3A%202px%3B%0Apadding%3A%205px%3B%0Aborder%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dstyle%3A%20inset%3B%0Aline%2Dheight%3A%2018px%3B%0Apadding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0Aborder%2Dleft%2Dstyle%3A%20none%3B%0Aborder%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Ap%20%7B%0Amargin%3A%200%2E5em%200%3B%0A%7D%0Ablockquote%20%7B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Apadding%3A%200%2E25em%200%2E75em%3B%0A%7D%0Ahr%20%7B%0Aborder%2Dstyle%3A%20solid%3B%0Aborder%3A%20none%3B%0Aborder%2Dtop%3A%201px%20solid%20%23777%3B%0Amargin%3A%2028px%200%3B%0A%7D%0Adl%20%7B%0Amargin%2Dleft%3A%200%3B%0A%7D%0Adl%20dd%20%7B%0Amargin%2Dbottom%3A%2013px%3B%0Amargin%2Dleft%3A%2013px%3B%0A%7D%0Adl%20dt%20%7B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0Aul%20%7B%0Amargin%2Dtop%3A%200%3B%0A%7D%0Aul%20li%20%7B%0Alist%2Dstyle%3A%20circle%20outside%3B%0A%7D%0Aul%20ul%20%7B%0Amargin%2Dbottom%3A%200%3B%0A%7D%0Apre%2C%20code%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0Aborder%2Dradius%3A%203px%3B%0Acolor%3A%20%23333%3B%0Awhite%2Dspace%3A%20pre%2Dwrap%3B%20%0A%7D%0Apre%20%7B%0Aborder%2Dradius%3A%203px%3B%0Amargin%3A%205px%200px%2010px%200px%3B%0Apadding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Acode%20%7B%0Afont%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0Afont%2Dsize%3A%2085%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0Apadding%3A%202px%200px%3B%0A%7D%0Adiv%2Efigure%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0Abackground%2Dcolor%3A%20%23FFFFFF%3B%0Apadding%3A%202px%3B%0Aborder%3A%201px%20solid%20%23DDDDDD%3B%0Aborder%2Dradius%3A%203px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Amargin%3A%200%205px%3B%0A%7D%0Ah1%20%7B%0Amargin%2Dtop%3A%200%3B%0Afont%2Dsize%3A%2035px%3B%0Aline%2Dheight%3A%2040px%3B%0A%7D%0Ah2%20%7B%0Aborder%2Dbottom%3A%204px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Apadding%2Dbottom%3A%202px%3B%0Afont%2Dsize%3A%20145%25%3B%0A%7D%0Ah3%20%7B%0Aborder%2Dbottom%3A%202px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Afont%2Dsize%3A%20120%25%3B%0A%7D%0Ah4%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23f7f7f7%3B%0Amargin%2Dleft%3A%208px%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Ah5%2C%20h6%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23ccc%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Aa%20%7B%0Acolor%3A%20%230033dd%3B%0Atext%2Ddecoration%3A%20none%3B%0A%7D%0Aa%3Ahover%20%7B%0Acolor%3A%20%236666ff%3B%20%7D%0Aa%3Avisited%20%7B%0Acolor%3A%20%23800080%3B%20%7D%0Aa%3Avisited%3Ahover%20%7B%0Acolor%3A%20%23BB00BB%3B%20%7D%0Aa%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0Aa%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%20code%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%0A" rel="stylesheet" type="text/css" />
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Exploratory statistics with IRTpp</h1>
+<h4 class="author"><em>SICS Research Group</em></h4>
+<h4 class="date"><em>2016-06-28</em></h4>
+
+
+
+<div id="exploratory-statistics" class="section level1">
+<h1>Exploratory statistics</h1>
+<p>In this section a set of functions that serve to a preliminary analysis of the test data are presented.</p>
+<ul>
+<li>Cronbach’s alpha</li>
+<li>Cronbach-Mesbah Curve</li>
+<li>Biserial coefficient</li>
+<li>Test or Item information</li>
+<li>Guttman’s Lambda</li>
+<li>Yule coefficient of correlation</li>
+<li>Phi coefficient of correlation</li>
+<li>Polyserial coefficient</li>
+<li>Parallel Analysis</li>
+</ul>
+<div id="cronbachs-alpha" class="section level3">
+<h3>Cronbach’s alpha</h3>
+<p>The Cronbach’s alpha is a measure of correlation between test items.</p>
+<p>This calculated como <span class="math inline">\(\frac{N}{N-1}(1 - \frac{\sum{S_i^2}}{S_t^2})\)</span> where <span class="math inline">\(S_i^2\)</span> is the variance of the item, <span class="math inline">\(S_t^2\)</span> is the variance total and <span class="math inline">\(N\)</span> is the number of items.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(IRTpp)
+
+data &lt;-<span class="st"> </span><span class="kw">simulateTest</span>(<span class="dt">model=</span><span class="st">&quot;2PL&quot;</span>,<span class="dt">items=</span><span class="dv">10</span>,<span class="dt">individuals=</span><span class="dv">1000</span>)
+
+<span class="kw">alpha.cronbach</span>(data$test)</code></pre></div>
+<pre><code>## $Alpha
+## [1] 0.6684934
+## 
+## $N
+## [1] 1000</code></pre>
+<p>This function returns the value of coefficient.</p>
+</div>
+<div id="cronbach-mesbah-curve" class="section level3">
+<h3>Cronbach-Mesbah Curve</h3>
+<p>To assess the unidimensionality of a set of items it is then possible to plot a curve, called Cronbach-Mesbah curve. The first step uses all items to compute alpha. Then, at every step, one item is removed. The removed item is that which leaves the scale with its maximum alpha value. If we remove a bad item, the alpha coefficient will increase, whereas if we remove a good item alpha must decrease. This procedure is repeated until only two items remain. Thus, a decrease of such a curve after adding a items would cause us to suspect strongly that the added items did not constitute a unidimensional set with the other items.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">curve &lt;-<span class="st"> </span><span class="kw">alpha.c</span>(data$test)</code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">curve</code></pre></div>
+<pre><code>##   N.Item Alpha.Max Removed.Item
+## 1      2 0.6878119           --
+## 2      3 0.7122358           --
+## 3      4 0.7498814           --
+## 4      5 0.7511637           --
+## 5      6 0.7362256           --
+## 6      7 0.7250595           --
+## 7      8 0.7088069           --
+## 8      9 0.6913105           --
+## 9     10 0.6684934           --</code></pre>
+<p>This function returns a table with the number of items used to calculate the coefficient, the maximum value of the alpha coefficient calculated at each step and the item removed at each step. Finally it presents the Cronbach-Mesbah curve plot.</p>
+</div>
+<div id="biserial-coefficient" class="section level3">
+<h3>Biserial Coefficient</h3>
+<p>Point-Biserial correlation coefficient is a correlation coefficient used when one variable is continuous and the other variable is dichotomous.</p>
+<p>It is calculated as <span class="math inline">\(r_{xy} = (\bar{x}_p - \bar{x}_q / S_x)*\sqrt{pq}\)</span> where p is the proportion of subjects with one of the two possible values of the variable Y, q is the proportion of subjects with the other possible value, <span class="math inline">\(\bar{x}_p\)</span> and <span class="math inline">\(\bar{x}_q\)</span> is the average X subjects whose proportion is p and q respectively, and <span class="math inline">\(S_x\)</span> is the standard deviation of all subjects X.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">biserial.cor</span>(<span class="kw">rowSums</span>(data$test), data$test[,<span class="dv">1</span>])</code></pre></div>
+<pre><code>## [1] -0.399795</code></pre>
+<p>This function returns the value of Biserial coefficient.</p>
+</div>
+<div id="test-or-item-information" class="section level3">
+<h3>Test or Item information</h3>
+<p>The amount of information is computed as the area under the Item or Test Information Curve.</p>
+<p>You need to have the values of the estimates of the parameters in matrix for calculation.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fit &lt;-<span class="st"> </span><span class="kw">irtpp</span>(<span class="dt">dataset =</span> data$test,<span class="dt">model =</span> <span class="st">&quot;2PL&quot;</span>)
+
+fit=<span class="kw">parameter.matrix</span>(fit$z)
+
+<span class="kw">information</span>(fit, <span class="kw">c</span>(-<span class="dv">2</span>, <span class="dv">0</span>))</code></pre></div>
+<pre><code>## $InfoRange
+## [1] 41.51999
+## 
+## $InfoTotal
+## [1] 48.42278
+## 
+## $PropRange
+## [1] 0.8574475
+## 
+## $range
+## [1] -2  0
+## 
+## $items
+## NULL</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">information</span>(fit, <span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">2</span>), <span class="dt">items =</span> <span class="kw">c</span>(<span class="dv">3</span>, <span class="dv">5</span>))</code></pre></div>
+<pre><code>## $InfoRange
+## [1] 0.0948751
+## 
+## $InfoTotal
+## [1] 0.3434113
+## 
+## $PropRange
+## [1] 0.2762725
+## 
+## $range
+## [1] 0 2
+## 
+## $items
+## [1] 3 5</code></pre>
+<p>This function returns four values: the amount of information in the specified interval, the proportion of information in the specified interval, the value of range argument and the value of items argument.</p>
+</div>
+<div id="guttmans-lambda" class="section level3">
+<h3>Guttman’s Lambda</h3>
+<p>This function returns the six Lower limits of reliability coefficients Guttman for the test.</p>
+<p>Let <span class="math inline">\(S_j^2\)</span> the variances over persons of the n items in the test, and <span class="math inline">\(S_t^2\)</span> the variance over persons of the sum of the items.</p>
+<p>The firt estimate <span class="math inline">\(\lambda_1\)</span> can be computed from <span class="math inline">\(L_1 = 1 - (\sum{s_j^2}/S_t^2)\)</span> Let <span class="math inline">\(C_2\)</span> the sum of squares of the covariances between items, therefore is the sum of <span class="math inline">\(n(n-1)/2\)</span> terms. The bound <span class="math inline">\(\lambda_2\)</span> is computed by <span class="math inline">\(L_2 = L_1 + (\sqrt{n/n-1 C_2}/S_t^2)\)</span>. The third lower bound <span class="math inline">\(\lambda_3\)</span> is a modification of <span class="math inline">\(\lambda_1\)</span>, it is computed from the <span class="math inline">\(L_3 = n/(n-1) L_1\)</span>. Fourth lower bound <span class="math inline">\(\lambda_4\)</span> has been interpreted as the greatest split half reliability, and requires that the test be scored as twohalves. It is calculated from <span class="math inline">\(L_4 = 2(1 - (s_a^2 + s_b^2)/s_t^2)\)</span> where <span class="math inline">\(S_a^2\)</span> and <span class="math inline">\(S_b^2\)</span> are the respectives variances of the two parts for the single trial. For the fifth lower bound <span class="math inline">\(\lambda_5\)</span>, let <span class="math inline">\(C_{2j}\)</span> be the sum of the squares of the covariances of item j with the remaining n-1 items, and let <span class="math inline">\(\bar{C}_2\)</span> be the largest of the <span class="math inline">\(C_{2j}\)</span>. Then the coefficient can be computed from <span class="math inline">\(L_5 = L_1 + (2\sqrt{\bar{C}_2})/S_t^2\)</span>. The final bound is based on multiple correlation, let <span class="math inline">\(e_j^2\)</span> be the variance of the errors of estimate of item j from its linear multiple regression on the remaining n-1 items. Then <span class="math inline">\(\lambda_6\)</span> can be computed from <span class="math inline">\(L_6 = 1 - (\sum{e_j^2})/S_t^2\)</span></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">gutt</span>(data$test)</code></pre></div>
+<pre><code>## $lambda1
+## [1] 0.601644
+## 
+## $lambda2
+## [1] 0.7171262
+## 
+## $lambda3
+## [1] 0.6684934
+## 
+## $lambda4
+## [1] 0.7141053
+## 
+## $lambda5
+## [1] 0.6765842
+## 
+## $lambda6
+## [1] 0.6742666</code></pre>
+<p>The result is a list with the six values of the coefficients.</p>
+</div>
+<div id="yule-coefficient-of-correlation" class="section level3">
+<h3>Yule coefficient of correlation</h3>
+<p>The Yule coefficient of is a correlation coefficient applied to dichotomous data. Given a two x two table of counts</p>
+<p>| a | b | R1 | | c | d | R1 | |—|—|—-| |C1 | C2| n |</p>
+<p>or a vector <span class="math inline">\((a,b,c,d)\)</span> of frequencies.</p>
+<p>The coefficient of Yule is calculated from <span class="math inline">\((ad - bc)/(ad + bc)\)</span>. This is the number of pairs in agreement <span class="math inline">\((ad)\)</span> - the number in disagreement <span class="math inline">\((bc)\)</span> over the total number of paired observations.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">12</span>,<span class="dv">8</span>,<span class="dv">16</span>,<span class="dv">9</span>)
+<span class="kw">Yule</span>(x)</code></pre></div>
+<pre><code>## [1] -0.08474576</code></pre>
+<p>This function returns the value of the Yule Q coefficient.</p>
+</div>
+<div id="phi-coefficient-of-correlation" class="section level3">
+<h3>Phi coefficient of correlation</h3>
+<p>The Phi coefficient is a correlation coefficient applied to dichotomous data. Given a two x two table of counts</p>
+<p>| a | b | R1 | | c | d | R1 | |—|—|—-| |C1 | C2| n |</p>
+<p>or a vector <span class="math inline">\((a,b,c,d)\)</span> of frequencies.</p>
+<p>The coefficient phi is calculated from <span class="math inline">\((ad - bc)/\sqrt{p_qp_2q_1q_2}\)</span> where <span class="math inline">\(p_i\)</span> and <span class="math inline">\(q_i\)</span> are the ratios of the dichotomous variables.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x2 =<span class="st"> </span><span class="kw">matrix</span>(x,<span class="dt">ncol=</span><span class="dv">2</span>)
+<span class="kw">phi</span>(x2)</code></pre></div>
+<pre><code>## [1] -0.04</code></pre>
+<p>This function returns the value of the Phi coefficient.</p>
+</div>
+<div id="polyserial-coefficient" class="section level3">
+<h3>Polyserial coefficient</h3>
+<p>Polyserial correlation coefficient is a correlation coefficient used when one variable is continuous and the other variable is dichotomous.</p>
+<p>The coefficient is calculated from <span class="math inline">\(rho = r_{xy} * \sqrt{(n - 1)/n} * s_y/\sum{phi(tau)}\)</span> where <span class="math inline">\(r_{xy}\)</span> is the coefficient of correlation of Pearson coefficient, <span class="math inline">\(S_y\)</span> is the standard deviation of Y, and <span class="math inline">\(phi(tau)\)</span> are the ordinates of the normal curve at the normal equivalent of the cut point boundaries between the item responses.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span><span class="kw">rnorm</span>(<span class="dv">100</span>)
+y &lt;-<span class="st"> </span><span class="kw">sample</span>(<span class="dv">1</span>:<span class="dv">5</span>,<span class="dv">100</span>,<span class="dt">replace=</span>T)
+<span class="kw">cor</span>(x, y) </code></pre></div>
+<pre><code>## [1] -0.07819579</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">polyserial.cor</span>(x, y) </code></pre></div>
+<pre><code>##             [,1]
+## [1,] -0.08326381</code></pre>
+<p>This function returns the value of the Polyserial coefficient.</p>
+</div>
+<div id="parallel-analysis" class="section level3">
+<h3>Parallel Analysis</h3>
+<p>This function performs Horn’s parallel analysis for a principal component.</p>
+<p>Is a implementation of Horn’s (1965) tecnique for evaluating the components retained in a principle component analysis (PCA). This procedure is a adaptation of the function paran of Package Paran.</p>
+<p>It required a matrix or a Dataframe that holds the test response data, a number indicating the amount of iterations that representing the number of random data sets to be produced in the analysis which is introduced into the iterations parameter. Also required a number between 1 and 99 indicating the centile used in estimating bias which is introduced into the centile parameter, and a value specifies that the random number is to be seeded with the supplied integer.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">an.parallel</span>(data$test, <span class="dt">iterations =</span> <span class="dv">100</span>, <span class="dt">centile =</span> <span class="dv">99</span>, <span class="dt">seed =</span> <span class="dv">12</span>)</code></pre></div>
+<pre><code>## 
+## Using eigendecomposition of correlation matrix.
+## 
+## Results of Horn's Parallel Analysis for component retention
+## 100 iterations, using the 99 centile estimate
+## 
+## -------------------------------------------------- 
+## Component   Adjusted    Unadjusted    Estimated 
+##             Eigenvalue  Eigenvalue    Bias 
+## -------------------------------------------------- 
+## 1           2.630790    2.851498      0.220707
+## 2           0.904242    1.056722      0.152480
+## 3           0.907721    1.022575      0.114854
+## 4           0.892525    0.958701      0.066176
+## 5           0.845475    0.885671      0.040196
+## 6           0.853727    0.860941      0.007214
+## 7           0.755071    0.735765     -0.01930
+## 8           0.674845    0.623950     -0.05089
+## 9           0.612095    0.536551     -0.07554
+## 10          0.580621    0.467620     -0.11300
+## -------------------------------------------------- 
+## 
+## Adjusted eigenvalues &gt; 1 indicate dimensions to retain.
+## (1 components retained)</code></pre>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<p>Additionally you can work with the correlation matrix, for this requires a parameter <em>mat</em> that specifies that the procedure use the provided correlation matrix rather than supplying a data matrix through x and the <em>n</em> argument must also be supplied when <em>mat</em> is used where <em>n</em> is the number of observations.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">data_cor &lt;-<span class="st"> </span><span class="kw">cor</span>(data$test)
+
+<span class="kw">an.parallel</span>(<span class="dt">mat =</span> data_cor, <span class="dt">n =</span> <span class="dv">1000</span>, <span class="dt">iterations =</span> <span class="dv">100</span>, <span class="dt">centile =</span> <span class="dv">99</span>, <span class="dt">seed =</span> <span class="dv">12</span>)</code></pre></div>
+<pre><code>## 
+## Using eigendecomposition of provided correlation matrix.
+## 
+## Results of Horn's Parallel Analysis for component retention
+## 100 iterations, using the 99 centile estimate
+## 
+## -------------------------------------------------- 
+## Component   Adjusted    Unadjusted    Estimated 
+##             Eigenvalue  Eigenvalue    Bias 
+## -------------------------------------------------- 
+## 1           2.630790    2.851498      0.220707
+## 2           0.904242    1.056722      0.152480
+## 3           0.907721    1.022575      0.114854
+## 4           0.892525    0.958701      0.066176
+## 5           0.845475    0.885671      0.040196
+## 6           0.853727    0.860941      0.007214
+## 7           0.755071    0.735765     -0.01930
+## 8           0.674845    0.623950     -0.05089
+## 9           0.612095    0.536551     -0.07554
+## 10          0.580621    0.467620     -0.11300
+## -------------------------------------------------- 
+## 
+## Adjusted eigenvalues &gt; 1 indicate dimensions to retain.
+## (1 components retained)</code></pre>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<p>This function returns a table with the next information: <em>Retained Components</em> a scalar integer representing the number of components retained, <em>Adjusted eigenvalues</em> a vector of the estimated eigenvalues adjusted, <em>Unadjusted eigenvalues</em> a vector of the eigenvalues of the observed data from either an unrotated principal component analysis and <em>Bias</em> a vector of the estimated bias of the unadjusted eigenvalues. Finally, print the plot with the above information.</p>
+</div>
+</div>
+
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
