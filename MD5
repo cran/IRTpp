@@ -1,4 +1,4 @@
-48dd94e499e19bc589827f5c6526d2e8 *DESCRIPTION
+8ec5a935bbf580408ce2becc8c780b91 *DESCRIPTION
 5d4db228b76526adfc3844eab71cf95d *LICENSE
 0156085b7c404e82711a8f7e7668f081 *NAMESPACE
 25b86923a371e18605c137240cc0fe9c *R/RcppExports.R
@@ -50,7 +50,8 @@ f42ed336a8a5809b2e9c1d3d8e105c25 *inst/irtppcpp/include/SPGO/include/Optimizatio
 806c1ba8d5afdcd09c1e6bffdbb177e7 *inst/irtppcpp/include/SPGO/include/Types/Generic.hpp
 29c0d9490d328d779dc311963a2c0f19 *inst/irtppcpp/include/SPGO/makefile
 540cc2fbd6a3c37777530f84c3c747a2 *inst/irtppcpp/include/catch.h
-a3e4ace1f2ab097b3b6cb945484f4d63 *inst/irtppcpp/irtppcpp.mk
+2174e163820e5ff17a42d42087389cfd *inst/irtppcpp/irtppcpp.mk
+a3e4ace1f2ab097b3b6cb945484f4d63 *inst/irtppcpp/irtppcpp.mk.orig
 f8293216a8176acce4d83150aae6c7a8 *inst/irtppcpp/irtppcpp.mk.win32
 ff09e7006f579fe32637068f9f834feb *inst/irtppcpp/irtppcpp.mk.win64
 c69a436c042937b47c943256b26154ed *inst/irtppcpp/makefile
@@ -140,7 +141,7 @@ a7f0c00614890b3d85ee926421594f06 *man/testmulti.Rd
 d0d95a58772b6bd99b61ddc245459584 *man/x2.Rd
 d58e4db436f4bde5c7ab9c0c7d4803ed *man/z3_itemf.Rd
 8d9e62a89da63c4abe8379eb57a1734b *man/z3_personf.Rd
-739ac07acf4aab4bbef323a5311c4cb5 *src/Makevars
+f40be16330c9b9cf0b36139af7acbf79 *src/Makevars
 c8515cf06243125a72610023296b6523 *src/Makevars.win
 937baf1625a449dcb5e63e50a9d25b2d *src/RcppExports.cpp
 65b0ca6febc851714c3fadce4ef91527 *src/util_package.cpp

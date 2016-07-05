@@ -1,4 +1,4 @@
-include $(R_HOME)/etc$(R_ARCH)/Makeconf
+include $(R_HOME)/etc/Makeconf
 
 SRCS = src/type/ghquads.cpp \
 	src/utils/Input.cpp \
@@ -9,6 +9,7 @@ SRCS = src/type/ghquads.cpp \
 
 LIBRARY = irtppcpp
 SRC_DIR = src
+CPPFLAGS = -march=native -g3 -Wall $(FPICFLAGS)
 INCLUDES = -I./$(SRC_DIR) -I./include/SPGO/include/
 OBJS = $(SRCS:.cpp=.o)
 
@@ -17,7 +18,7 @@ all : lib$(LIBRARY).a
 $(OBJS): %.o : %.h
 
 $(SRC_DIR)/%.o: $(SRC_DIR)/%.cpp
-	$(CXX1X) $(CXX1XSTD) $(CXX1XFLAGS) $(CXX1XPICFLAGS) -c $(INCLUDES) -o $@ $<
+	$(CC) $(CPPFLAGS) -c $(INCLUDES) -o $@ $<
 
 lib$(LIBRARY).a : $(OBJS)
 	$(AR) rsv $@ $^
